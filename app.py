@@ -299,7 +299,7 @@ def update_exp_desc(v1, v2, v3, v4, v5):
         Output('breakdown_stats', 'children'), Output(
             'breakdown_stats_1', 'children'), Output('breakdown_stats_2', 'children'),
         Output('breakdown_stats_3', 'children'), Output('breakdown_stats_4', 'children')],
-    [dash.dependencies.Input('go_button', 'n_clicks'), dash.dependencies.State('input_trials', 'value'), dash.dependencies.State('input_rounds', 'value'),
+    [dash.dependencies.Input('go_button', 'n_clicks')], [dash.dependencies.State('input_trials', 'value'), dash.dependencies.State('input_rounds', 'value'),
      dash.dependencies.State('p-slider', 'value'), dash.dependencies.State('input_start', 'value'), dash.dependencies.State('bet-p-slider', 'value')])
 def update_after_go(value, trials, rounds, p, start, bet_p):
 
