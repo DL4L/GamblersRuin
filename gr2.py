@@ -30,6 +30,22 @@ class GR2():
                     outcomes[j, i] = (1-self.bet_percent) * outcomes[j-1, i]
         return outcomes
 
+    def simulate_quick(self):
+        result = []
+        for _ in range(self.num_trials):
+            this_trial = []
+            money = self.start_amount
+            for _ in range(self.games_per_trial):
+                if self.win_prob >= random.uniform(0, 1):
+                    money += money * self.bet_percent
+                else:
+                    money -= money * self.bet_percent
+                this_trial.append(money)
+            result.append(this_trial)
+
+        result.sort(key=lambda x: x[-1], reverse=True)
+        return result
+
     def num_wins(self, result):
         wins = sum([1 for i in result if i > self.start_amount])
         return wins
@@ -43,7 +59,10 @@ class GR2():
         return np.mean(result).round(2)
 
     def median_result(self, result):
-        return np.median(result).round(2)
+        if np.median(result) == np.NaN:
+            return 0
+        else:
+            return np.median(result).round(2)
 
     def min_max_result(self, result):
         return min(result), max(result)
@@ -51,13 +70,13 @@ class GR2():
     def median_per_round(self, result):
         #mpr = {i+1: np.median(result[i]).round(2) for i in range(len(result))}
         # return pd.DataFrame(list(mpr.items()), columns=['Round', 'Median Winnings'])
-        return {i+1: np.median(result[i]).round(2) for i in range(len(result))}
+        return {i+1: np.log(np.median(result[i]).round(2)) for i in range(len(result))}
 
     def lower_quartile(self, result):
-        return {i+1: np.percentile(result[i], 25).round(2) for i in range(len(result))}
+        return {i+1: np.log(np.percentile(result[i], 25).round(2)) for i in range(len(result))}
 
     def upper_quartile(self, result):
-        return {i+1: np.percentile(result[i], 75).round(2) for i in range(len(result))}
+        return {i+1: np.log(np.percentile(result[i], 75).round(2)) for i in range(len(result))}
 
     def get_winnings_for_each_trial(self, result):
         return pd.DataFrame(result)
@@ -91,5 +110,6 @@ class GR2():
             if n < 100:
                 n = round(n, 2)
             else:
-                n = int(round(n, 0))
+                if n:
+                    n = int(round(n, 0))
             return "{:,}".format(n)
