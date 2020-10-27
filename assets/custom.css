@@ -302,8 +302,8 @@ body {
   font-size: 1.8rem;
 }
 input {
-  width: inherit;
-  margin: inherit;
+  width: 50%;
+  margin: 10px;
 }
 .param_title {
   text-align: center;

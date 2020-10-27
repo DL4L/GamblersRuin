@@ -49,8 +49,15 @@ class GR2():
         return min(result), max(result)
 
     def median_per_round(self, result):
-        mpr = {i+1: np.median(result[i]).round(2) for i in range(len(result))}
-        return pd.DataFrame(list(mpr.items()), columns=['Round', 'Median Winnings'])
+        #mpr = {i+1: np.median(result[i]).round(2) for i in range(len(result))}
+        # return pd.DataFrame(list(mpr.items()), columns=['Round', 'Median Winnings'])
+        return {i+1: np.median(result[i]).round(2) for i in range(len(result))}
+
+    def lower_quartile(self, result):
+        return {i+1: np.percentile(result[i], 25).round(2) for i in range(len(result))}
+
+    def upper_quartile(self, result):
+        return {i+1: np.percentile(result[i], 75).round(2) for i in range(len(result))}
 
     def get_winnings_for_each_trial(self, result):
         return pd.DataFrame(result)

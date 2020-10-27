@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import numpy as np
-
+import pandas as pd
 import gr2
 
 pio.templates.default = 'gridon'
@@ -100,6 +100,28 @@ app.layout = html.Div(
                     [html.Div([
                         html.H6("Parameters", className="param_title"),
                         html.P(
+                            'Enter your starting money',
+                            className="control_label"
+                        ),
+                        dcc.Input(
+                            id="input_start", type="number", placeholder="Enter your starting amount of money",
+                            min=0, max=10000000, step='any', value=10
+                        ),
+                        html.P(
+                            "Select the bet amount. % of your total money",
+                            className="control_label"
+                        ),
+                        dcc.Slider(
+                            id='bet-p-slider',
+                            min=0,
+                            max=100,
+                            step=5,
+                            value=80,
+                            marks={0: '0', 50: '50%', 100: '100%'}
+                        ),
+                        html.Div(id='bet-p-slider-output-container',
+                                 className="control_label control_output_label"),
+                        html.P(
                             'Select the odds of winning the bet',
                             className="control_label"
                         ),
@@ -113,50 +135,30 @@ app.layout = html.Div(
                         ),
                         html.P(id='p-slider-output-container',
                                className="control_label control_output_label"),
-                    ], className="param_section"),
+
                         html.Br(),
 
-                        html.P(
-                            'Enter your starting amount of money',
-                            className="control_label"
-                    ),
-                        dcc.Input(
-                            id="input_start", type="number", placeholder="Enter your starting amount of money",
-                            min=10, max=100000, step=10, value=10
-                    ),
-                        html.P(
-                            "Select the % of your money you want to bet each round",
-                            className="control_label"
-                    ),
-                        dcc.Slider(
-                            id='bet-p-slider',
-                            min=0,
-                            max=100,
-                            step=5,
-                            value=80,
-                            marks={0: '0', 50: '50%', 100: '100%'}
-                    ),
-                        html.Div(id='bet-p-slider-output-container',
-                                 className="control_label control_output_label"),
+
+
+
                         html.P(
                             'Enter number of rounds to play',
                             className="control_label"
-                    ),
+                        ),
                         dcc.Input(
                             id="input_rounds", type="number", placeholder="Enter number of rounds to play",
-                            min=0, max=10000, step=10, value=200
-                    ),
+                            min=0, max=10000, step='any', value=200
+                        ),
 
                         html.P(
                             'Enter number of trials (How many people are playing in this simulation)',
                             className="control_label"
-                    ),
+                        ),
                         dcc.Input(
                             id="input_trials", type="number", placeholder="Enter number of trials",
-                            min=100, max=500, step=100, value=200
-                    ),
-                        html.Div(
-                            [html.Button('GO', id='go_button', className="go-button", n_clicks=0)], className="go-button-div"),
+                            min=3, max=500, step='any', value=200
+                        ),
+                    ], className="param_section"),
 
 
                     ],
@@ -299,9 +301,9 @@ def update_exp_desc(v1, v2, v3, v4, v5):
         Output('breakdown_stats', 'children'), Output(
             'breakdown_stats_1', 'children'), Output('breakdown_stats_2', 'children'),
         Output('breakdown_stats_3', 'children'), Output('breakdown_stats_4', 'children')],
-    [dash.dependencies.Input('go_button', 'n_clicks')], [dash.dependencies.State('input_trials', 'value'), dash.dependencies.State('input_rounds', 'value'),
-     dash.dependencies.State('p-slider', 'value'), dash.dependencies.State('input_start', 'value'), dash.dependencies.State('bet-p-slider', 'value')])
-def update_after_go(value, trials, rounds, p, start, bet_p):
+    [dash.dependencies.Input('input_trials', 'value'), dash.dependencies.Input('input_rounds', 'value'),
+     dash.dependencies.Input('p-slider', 'value'), dash.dependencies.Input('input_start', 'value'), dash.dependencies.Input('bet-p-slider', 'value')])
+def update_after_go(trials, rounds, p, start, bet_p):
 
     p = p/100
     bet_p = bet_p/100
@@ -314,14 +316,22 @@ def update_after_go(value, trials, rounds, p, start, bet_p):
 
     median = gr.median_result(out[-1]).round(2)
     median_per_round = gr.median_per_round(out)
-    winnings = gr.get_winnings_for_each_trial(out[-1])
-    fig1 = px.line(median_per_round, x=median_per_round["Round"],
-                   y=median_per_round["Median Winnings"], title="Median Winnings by Round")
+    lower_q = gr.lower_quartile(out)
+    upper_q = gr.upper_quartile(out)
+    df_median = pd.DataFrame(
+        [median_per_round.keys(), pd.Series(median_per_round), pd.Series(upper_q), pd.Series(lower_q)]).T
+    df_median.columns = ["Round", "Median",
+                         "Upper Quartile", "Lower Quartile"]
+    fig1 = px.line(df_median, x="Round",
+                   y=["Median", "Upper Quartile", "Lower Quartile"], title="Log Median Winnings by Round")
+    fig1.update_yaxes(title_text="Log Winnings")
 
-    fig2 = px.scatter(winnings, title="Winnings After %s Rounds" % (rounds))
+    winnings = gr.get_winnings_for_each_trial(np.log(out[-1]))
+    fig2 = px.scatter(
+        winnings, title="Log Winnings After %s Rounds" % (rounds))
     fig2.update_layout(showlegend=False)
     fig2.update_xaxes(title_text='Person / Trial')
-    fig2.update_yaxes(title_text='Winnings after {} rounds'.format(rounds))
+    fig2.update_yaxes(title_text='Log Winnings'.format(rounds))
 
     top = gr.max_result_formatted(out[-1])
     first, second, third = '1st place: £' + \
