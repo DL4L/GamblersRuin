@@ -316,6 +316,28 @@ button#go_button {
   flex-direction: column;
 }
 
+div#infoContainer {
+  width: -webkit-fill-available;
+  margin: 12px;
+  display: block;
+}
+button#toggle-hide {
+  width: 100%;
+  text-align: left;
+  font-size: large;
+  color: white;
+  background: #565e67;
+}
+button#toggle-hide:hover {
+  background: cadetblue;
+}
+button.collapsible:after {
+  content: "\002B";
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1,

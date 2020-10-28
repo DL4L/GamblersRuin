@@ -56,44 +56,10 @@ layout = dict(
 )
 
 app.layout = html.Div(
+
     [
         dcc.Store(id='aggregate_data'),
-        html.Div(
-            [
 
-                html.Div(
-                    [
-                        html.Div(
-                            [
-
-                                html.H6(
-                                    id="experiment_desc",
-                                    className="info_text"
-                                ),
-                                html.H6(
-                                    "Try adjusting the parameters below, can you find the best outcome?",
-                                    id="static_experiment_desc",
-                                    className="info_text",
-
-                                ),
-                                html.Ul(
-                                    [html.Li("What is the optimal bet percentage for these odds?"), html.Li("What happens as you increase number of rounds?")])
-
-                            ],
-                            id="tripleContainer",
-                            className="pretty_container"
-                        ),
-
-
-
-                    ],
-                    id="infoContainer",
-                    className="row description_div"
-                ),
-            ],
-            id="header",
-            className='row',
-        ),
         html.Div(
             [
                 html.Div(
@@ -151,7 +117,7 @@ app.layout = html.Div(
                         ),
 
                         html.P(
-                            'Enter number of trials (How many people are playing in this simulation)',
+                            'Number of simulations/players',
                             className="control_label"
                         ),
                         dcc.Input(
@@ -182,6 +148,46 @@ app.layout = html.Div(
                 )
             ],
             className="row"
+        ),
+        html.Div(
+            [
+
+                html.Div(
+                    [html.Button("Description", id="toggle-hide", type="button", className="collapsible"),
+                     html.Div([
+                         html.Div(
+                             [
+
+                                 html.H6(
+                                     id="experiment_desc",
+                                     className="info_text"
+                                 ),
+                                 html.H6(
+                                     "Try adjusting the parameters, can you find the best outcome?",
+                                     id="static_experiment_desc",
+                                     className="info_text",
+
+                                 ),
+                                 html.Ul(
+                                     [html.Li("What is the optimal bet percentage for the given odds? Can you ensure that most simulations/players finish with more than they started?"), html.Li("What happens as you increase number of rounds?")])
+
+                             ],
+                             id="tripleContainer",
+                             className="pretty_container"
+
+                         ),
+                     ],
+                        id="content",
+                        style={'display': 'none'}
+                    ),
+
+                    ],
+                    id="infoContainer",
+                    className="row description_div"
+                ),
+            ],
+            id="header",
+            className='row',
         ),
         html.Div(
             [
@@ -267,6 +273,20 @@ app.layout = html.Div(
 )
 
 
+@app.callback([Output('content', 'style')],
+              [Input('toggle-hide', 'n_clicks')],
+              [State('content', 'style')]
+              )
+def callback(n_clicks, style):
+    if n_clicks:
+        if style is None or 'display' not in style:
+            style = {'display': 'none'}
+        else:
+            style['display'] = 'block' if style['display'] == 'none' else 'none'
+        return [style]
+    return [style]
+
+
 @app.callback(
     [dash.dependencies.Output(
         'p-slider-output-container', 'children'), Output('kelly_optimal', 'children')],
@@ -292,7 +312,9 @@ def update_bet_p_slider_output(value):
     [dash.dependencies.Input('input_trials', 'value'), dash.dependencies.Input('input_rounds', 'value'),
      dash.dependencies.Input('p-slider', 'value'), dash.dependencies.Input('input_start', 'value'), dash.dependencies.Input('bet-p-slider', 'value')])
 def update_exp_desc(v1, v2, v3, v4, v5):
-    return "Imagine %s people independently playing %s rounds of a game with %s%% chance of winning each round. They start with £%s and bet %s%%  of their money each round." % (v1, v2, v3, v4, v5)
+    # return "Imagine %s people independently playing %s rounds of a game with %s%% chance of winning each round. They start with £%s and bet %s%%  of their money each round." % (v1, v2, v3, v4, v5)
+    return html.Ul([html.Li("Starting Money: %s" % (v4)), html.Li("Bet Amount : %s%%" % (v5)), html.Li("Odds of Winning Each Round: %s%%" % (v3)),
+                    html.Li("Number of Rounds: %s" % (v2)), html.Li("Number of Simulations: %s" % (v1))])
 
 
 @app.callback(
@@ -319,11 +341,11 @@ def update_after_go(trials, rounds, p, start, bet_p):
     lower_q = gr.lower_quartile(out)
     upper_q = gr.upper_quartile(out)
     df_median = pd.DataFrame(
-        [median_per_round.keys(), pd.Series(median_per_round), pd.Series(upper_q), pd.Series(lower_q)]).T
-    df_median.columns = ["Round", "Median",
-                         "Upper Quartile", "Lower Quartile"]
+        [median_per_round.keys(), pd.Series(upper_q), pd.Series(median_per_round),  pd.Series(lower_q)]).T
+    df_median.columns = ["Round", "Upper Quartile", "Median",
+                         "Lower Quartile"]
     fig1 = px.line(df_median, x="Round",
-                   y=["Median", "Upper Quartile", "Lower Quartile"], title="Log Median Winnings by Round")
+                   y=["Upper Quartile", "Median", "Lower Quartile"], title="Log Median Winnings by Round")
     fig1.update_yaxes(title_text="Log Winnings")
 
     winnings = gr.get_winnings_for_each_trial(np.log(out[-1]))
