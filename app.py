@@ -59,7 +59,8 @@ app.layout = html.Div(
 
     [
         dcc.Store(id='aggregate_data'),
-
+        html.Div([html.H1("Gambler's Ruin & Kelly Criterion")],
+                 className="row header_row"),
         html.Div(
             [
                 html.Div(

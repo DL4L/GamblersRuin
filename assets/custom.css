@@ -338,6 +338,9 @@ button.collapsible:after {
   float: right;
   margin-left: 5px;
 }
+.header_row {
+  text-align: center;
+}
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1,
