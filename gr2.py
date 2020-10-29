@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import pandas as pd
 import math
 
@@ -43,7 +44,7 @@ class GR2():
                 this_trial.append(money)
             result.append(this_trial)
 
-        result.sort(key=lambda x: x[-1], reverse=True)
+        #result.sort(key=lambda x: x[-1], reverse=True)
         return result
 
     def num_wins(self, result):
@@ -72,10 +73,22 @@ class GR2():
         # return pd.DataFrame(list(mpr.items()), columns=['Round', 'Median Winnings'])
         return {i+1: np.log(np.median(result[i]).round(2)) for i in range(len(result))}
 
+    def quick_median_per_round(self, result):
+        #mpr = {i+1: np.median(result[i]).round(2) for i in range(len(result))}
+        # return pd.DataFrame(list(mpr.items()), columns=['Round', 'Median Winnings'])
+        #rounds = [[i[j] for i in result] for j in range(len(result[0]))]
+        return {i+1: np.log(np.median(result[i]).round(2)) for i in range(len(result))}
+
     def lower_quartile(self, result):
         return {i+1: np.log(np.percentile(result[i], 25).round(2)) for i in range(len(result))}
 
+    def quick_lower_quartile(self, result):
+        return {i+1: np.log(np.percentile(result[i], 25).round(2)) for i in range(len(result))}
+
     def upper_quartile(self, result):
+        return {i+1: np.log(np.percentile(result[i], 75).round(2)) for i in range(len(result))}
+
+    def quick_upper_quartile(self, result):
         return {i+1: np.log(np.percentile(result[i], 75).round(2)) for i in range(len(result))}
 
     def get_winnings_for_each_trial(self, result):

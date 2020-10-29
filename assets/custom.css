@@ -341,6 +341,12 @@ button.collapsible:after {
 .header_row {
   text-align: center;
 }
+.loading-1-full > div {
+  opacity: 85%;
+}
+#loader-wrapper > div {
+  visibility: visible !important;
+}
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1,
